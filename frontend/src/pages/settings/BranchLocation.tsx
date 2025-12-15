@@ -20,7 +20,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import type { MenuProps } from 'antd';
 import { settingsService } from '../../services/settings.service';
-import type { Branch, BranchFormData } from '../../types/settings.types';
+import type { Branch } from '../../types/settings.types';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;

@@ -10,9 +10,8 @@ import {
   Form,
   message,
   Select,
-  Tabs,
-  Space,
-  Checkbox,
+   Tabs,
+   Space,
 } from 'antd';
 import {
   SearchOutlined,
@@ -23,7 +22,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import type { MenuProps } from 'antd';
 import { settingsService } from '../../services/settings.service';
-import type { User, UserFormData, InviteUserFormData } from '../../types/settings.types';
+import type { User } from '../../types/settings.types';
 import { AvatarWithInitials } from '../../components/AvatarWithInitials';
 import { RolesAndPrivileges } from './RolesAndPrivileges';
 

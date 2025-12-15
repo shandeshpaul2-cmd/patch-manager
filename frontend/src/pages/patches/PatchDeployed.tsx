@@ -429,10 +429,10 @@ export const PatchDeployed = () => {
           </div>
         }
       >
-        <Steps current={currentStep} style={{ marginBottom: 24 }}>
-          <Steps.Step title="Deployment Details" />
-          <Steps.Step title="Select Patches" />
-        </Steps>
+         <Steps current={currentStep} style={{ marginBottom: 24 }} items={[
+           { title: 'Deployment Details' },
+           { title: 'Select Patches' },
+         ]} />
         {currentStep === 0 ? renderCreateDeploymentStep1() : renderCreateDeploymentStep2()}
       </Modal>
 

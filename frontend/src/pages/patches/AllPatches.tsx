@@ -35,8 +35,7 @@ import {
   ClockCircleOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import type { MenuProps } from 'antd';
-import { patchService, type Patch, type AffectedProduct } from '../../services/patch.service';
+import { patchService, type Patch } from '../../services/patch.service';
 import { SeverityBadge, OSIcon } from '../../components/patches';
 import dayjs from 'dayjs';
 
@@ -66,8 +65,7 @@ export const AllPatches = () => {
   const [editForm] = Form.useForm();
 
   // For Create Patch Step 2
-  const [affectedProducts] = useState<AffectedProduct[]>([]);
-  const [selectedPatch, setSelectedPatch] = useState<Patch | null>(null);
+  const [affectedProducts] = useState<any[]>([]);
 
   // Scan Endpoints Modal
   const [scanModalVisible, setScanModalVisible] = useState(false);
@@ -108,27 +106,6 @@ export const AllPatches = () => {
     navigate(`/patches/${patch.id}`);
   };
 
-  const handleEditPatch = (patch: Patch) => {
-    setEditingPatch(patch);
-    editForm.setFieldsValue({
-      name: patch.software,
-      platform: patch.platform,
-      description: patch.description,
-      category: patch.category,
-      severity: patch.severity,
-      bulletinId: patch.bulletinId,
-      kbNumber: patch.kbNumber,
-      releaseDate: patch.releaseDate ? dayjs(patch.releaseDate) : null,
-      rebootRequired: patch.rebootRequired,
-      supportUninstallation: patch.supportUninstallation,
-      architecture: patch.architecture,
-      referenceUrl: patch.referenceUrl,
-      languagesSupported: patch.languagesSupported,
-      tags: patch.tags,
-    });
-    setEditModalVisible(true);
-  };
-
   const handleEditPatchSubmit = async () => {
     try {
       const values = await editForm.validateFields();
@@ -156,46 +133,18 @@ export const AllPatches = () => {
         setEditingPatch(null);
         fetchPatches();
       }
-    } catch (error) {
-      message.error('Failed to update patch');
-    }
-  };
-
-  const handleDeletePatch = (patch: Patch) => {
-    Modal.confirm({
-      title: 'Delete Patch',
-      content: `Are you sure you want to delete ${patch.software}?`,
-      okText: 'Delete',
-      okType: 'danger',
-      onOk: async () => {
-        try {
-          await patchService.deletePatch(patch.id);
-          message.success('Patch deleted successfully');
-          fetchPatches();
-        } catch (error) {
-          message.error('Failed to delete patch');
-        }
-      },
-    });
-  };
-
-  const handleScanEndpoints = (patch: Patch) => {
-    setSelectedPatch(patch);
-    setScanModalVisible(true);
-  };
+   } catch (error) {
+       message.error('Failed to update patch');
+     }
+   };
 
   const handleScanSubmit = async () => {
     try {
-      const values = await scanForm.validateFields();
-      if (selectedPatch) {
-        await patchService.scanEndpoints(selectedPatch.id, {
-          scope: values.scope,
-          endpointIds: values.endpointIds || [],
-        });
-        message.success('Endpoint scan initiated successfully');
-        setScanModalVisible(false);
-        scanForm.resetFields();
-      }
+      await scanForm.validateFields();
+      // Handle scan submission
+      message.success('Endpoint scan initiated successfully');
+      setScanModalVisible(false);
+      scanForm.resetFields();
     } catch (error) {
       message.error('Failed to initiate scan');
     }

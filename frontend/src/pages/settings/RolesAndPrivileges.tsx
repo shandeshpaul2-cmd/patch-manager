@@ -198,7 +198,7 @@ export const RolesAndPrivileges = () => {
 
   const isModuleFullySelected = (moduleKey: string): boolean => {
     const modulePermission = permissions.find((p) => p.module === moduleKey);
-    return (
+    return !!(
       modulePermission &&
       PERMISSION_ACTIONS.every((action) => modulePermission.actions.includes(action))
     );

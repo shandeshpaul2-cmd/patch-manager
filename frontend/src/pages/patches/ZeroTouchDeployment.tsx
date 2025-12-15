@@ -13,10 +13,9 @@ import {
   Select,
   Radio,
   Empty,
-  Card,
-  Checkbox,
-  Switch,
-  TimePicker,
+   Card,
+   Checkbox,
+   Switch,
 } from 'antd';
 import {
   SearchOutlined,
@@ -337,9 +336,12 @@ export const ZeroTouchDeployment = () => {
                 mode="multiple"
                 placeholder="Search and select computers"
                 showSearch
-                filterOption={(input, option) =>
-                  (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
-                }
+                filterOption={(input, option) => {
+                  const children = Array.isArray(option?.children) 
+                    ? option.children.join('') 
+                    : String(option?.children || '');
+                  return children.toLowerCase().includes(input.toLowerCase());
+                }}
               >
                 <Option value="DESKTOP-7CC6ETJ">DESKTOP-7CC6ETJ</Option>
                 <Option value="LAPTOP-9XK2PLM">LAPTOP-9XK2PLM</Option>

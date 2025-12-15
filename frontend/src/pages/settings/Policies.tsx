@@ -165,7 +165,7 @@ export const Policies = () => {
 
   const handleViewAudit = async (policy: Policy) => {
     try {
-      const audit = await settingsService.getPolicyAudit(policy.id);
+      await settingsService.getPolicyAudit(policy.id);
       message.info(`Viewing audit history for ${policy.name}`);
     } catch (error) {
       message.error('Failed to fetch audit history');
@@ -188,12 +188,10 @@ export const Policies = () => {
       const policyData: PolicyFormData = {
         name: values.name,
         type: values.type,
-        orgUnit: values.orgUnit,
+        branch: values.branch || '',
+        roles: values.roles || [],
         description: values.description,
         configuration,
-        affectedRoles: values.affectedRoles || [],
-        effectiveDate: values.effectiveDate ? values.effectiveDate.toISOString() : undefined,
-        status: values.status ? 'Active' : 'Inactive',
       };
 
       if (editingPolicy) {
@@ -410,16 +408,16 @@ export const Policies = () => {
           );
         case 'select':
           return (
-            <Form.Item
-              key={field.name}
-              label={field.label}
-              name={field.name}
-              initialValue={field.default}
-            >
-              <Select
-                options={field.options?.map((opt) => ({ value: opt, label: opt }))}
-              />
-            </Form.Item>
+             <Form.Item
+               key={field.name}
+               label={field.label}
+               name={field.name}
+               initialValue={field.default}
+             >
+               <Select
+                 options={'options' in field && field.options ? field.options.map((opt: string) => ({ value: opt, label: opt })) : []}
+               />
+             </Form.Item>
           );
         case 'text':
           return (

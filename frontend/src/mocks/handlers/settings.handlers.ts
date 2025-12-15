@@ -320,24 +320,19 @@ export const settingsHandlers = [
   }),
 
   http.post('/api/settings/users/invite', async ({ request }) => {
-    const data = (await request.json()) as any;
+    await request.json();
     return HttpResponse.json({ success: true, message: 'Invitation sent' });
   }),
 
-  http.post('/api/settings/users/:id/reset-password', ({ params }) => {
+  http.post('/api/settings/users/:id/reset-password', () => {
     return HttpResponse.json({ success: true, message: 'Password reset email sent' });
   }),
 
-  http.post('/api/settings/users/:id/suspend', ({ params }) => {
-    const { id } = params;
-    const index = mockUsers.findIndex((u) => u.id === id);
-    if (index !== -1) {
-      mockUsers[index].status = 'In Active';
-    }
+  http.post('/api/settings/users/:id/suspend', () => {
     return HttpResponse.json({ success: true });
   }),
 
-  http.get('/api/settings/users/:id/audit-log', ({ params }) => {
+  http.get('/api/settings/users/:id/audit-log', () => {
     return HttpResponse.json([
       { action: 'Created', timestamp: '2024-01-15T10:00:00Z', by: 'System' },
       { action: 'Login', timestamp: '2024-03-05T09:45:00Z', by: 'User' },
@@ -470,11 +465,11 @@ export const settingsHandlers = [
     return HttpResponse.json({ success: true });
   }),
 
-  http.get('/api/settings/policies/:id/affected-users', ({ params }) => {
+  http.get('/api/settings/policies/:id/affected-users', () => {
     return HttpResponse.json(mockUsers.slice(0, 5));
   }),
 
-  http.get('/api/settings/policies/:id/audit', ({ params }) => {
+  http.get('/api/settings/policies/:id/audit', () => {
     return HttpResponse.json([
       { action: 'Created', timestamp: '2024-01-15T10:00:00Z', by: 'Alice Johnson' },
       { action: 'Modified', timestamp: '2024-02-01T10:00:00Z', by: 'Alice Johnson' },

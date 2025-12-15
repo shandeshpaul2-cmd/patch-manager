@@ -1,0 +1,12 @@
+{
+  "mcp": {
+    "microsoft-playwright-mcp": {
+      "type": "local",
+      "command": [
+        "npx",
+        "@playwright/mcp@latest"
+      ]
+    }
+  },
+  "$schema": "https://skenzercode.ai/config.json"
+}

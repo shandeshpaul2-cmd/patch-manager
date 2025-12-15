@@ -1,0 +1,483 @@
+import { http, HttpResponse } from 'msw';
+import type { Branch, User, Role, Policy } from '../../types/settings.types';
+
+// Mock data for branches
+let mockBranches: Branch[] = [
+  {
+    id: '1',
+    name: 'Gurugram (Default)',
+    status: 'Default',
+    users: 10,
+    assets: 10,
+    address: '123 Main Street, Sector 44',
+    city: 'Gurugram',
+    state: 'Haryana',
+    country: 'India',
+    postalCode: '122003',
+    phone: '+91 9876543210',
+    email: 'gurugram@example.com',
+    manager: 'user1',
+    isDefault: true,
+    description: 'Main branch location in Gurugram',
+  },
+];
+
+// Mock data for users
+let mockUsers: User[] = [
+  {
+    id: '1',
+    firstName: 'Alice',
+    lastName: 'Johnson',
+    email: 'alice.johnson@example.com',
+    phone: '+1234567890',
+    branch: 'Gurugram',
+    role: 'Admin',
+    status: 'Active',
+    lastLogin: 'March 5 2024, 09:45 am',
+    createdAt: '2024-01-15T10:00:00Z',
+  },
+  {
+    id: '2',
+    firstName: 'Bob',
+    lastName: 'Smith',
+    email: 'bob.smith@example.com',
+    phone: '+1234567891',
+    branch: 'Gurugram',
+    role: 'Team Manager',
+    status: 'Invite Sent',
+    lastLogin: 'March 5 2024, 09:45 am',
+    createdAt: '2024-01-20T10:00:00Z',
+  },
+  {
+    id: '3',
+    firstName: 'Charlie',
+    lastName: 'Brown',
+    email: 'charlie.brown@example.com',
+    phone: '+1234567892',
+    branch: 'Gurugram',
+    role: 'Team Manager',
+    status: 'New Account',
+    lastLogin: 'March 5 2024, 09:45 am',
+    createdAt: '2024-02-01T10:00:00Z',
+  },
+  {
+    id: '4',
+    firstName: 'Diana',
+    lastName: 'Prince',
+    email: 'bob.smith@example.com',
+    phone: '+1234567893',
+    branch: 'Gurugram',
+    role: 'Employee',
+    status: 'Active',
+    lastLogin: 'March 5 2024, 09:45 am',
+    createdAt: '2024-02-10T10:00:00Z',
+  },
+  {
+    id: '5',
+    firstName: 'Ethan',
+    lastName: 'Hunt',
+    email: 'ethan.hunt@example.com',
+    phone: '+1234567894',
+    branch: 'Gurugram',
+    role: 'Employee',
+    status: 'In Active',
+    lastLogin: 'March 5 2024, 09:45 am',
+    createdAt: '2024-02-15T10:00:00Z',
+  },
+  {
+    id: '6',
+    firstName: 'Fiona',
+    lastName: 'Gallagher',
+    email: 'fiona.gallagher@example.com',
+    phone: '+1234567895',
+    branch: 'Gurugram',
+    role: 'Admin',
+    status: 'In Active',
+    lastLogin: 'March 5 2024, 09:45 am',
+    createdAt: '2024-02-20T10:00:00Z',
+  },
+];
+
+// Mock data for roles
+let mockRoles: Role[] = [
+  {
+    id: '1',
+    name: 'Admin',
+    description: 'Curabitur pretium tincidunt lacus.',
+    users: 3,
+    branch: 'Gurugram',
+    permissions: [
+      { module: 'Patches', actions: ['view', 'create', 'edit', 'delete'] },
+      { module: 'Assets', actions: ['view', 'create', 'edit', 'delete'] },
+      { module: 'Discovery', actions: ['view', 'create', 'edit', 'delete'] },
+      { module: 'Reports', actions: ['view', 'create'] },
+      { module: 'Settings', actions: ['view', 'create', 'edit', 'delete'] },
+    ],
+    isSystem: true,
+  },
+  {
+    id: '2',
+    name: 'Team Manager',
+    description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip...',
+    users: 1,
+    branch: 'Gurugram',
+    permissions: [
+      { module: 'Patches', actions: ['view', 'create', 'edit'] },
+      { module: 'Assets', actions: ['view', 'create'] },
+      { module: 'Discovery', actions: ['view'] },
+      { module: 'Reports', actions: ['view'] },
+    ],
+    isSystem: true,
+  },
+  {
+    id: '3',
+    name: 'IT Team',
+    description: 'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    users: 3,
+    branch: 'Gurugram',
+    permissions: [
+      { module: 'Patches', actions: ['view', 'create'] },
+      { module: 'Assets', actions: ['view'] },
+    ],
+    isSystem: false,
+  },
+  {
+    id: '4',
+    name: 'Employee',
+    description: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserun...',
+    users: 12,
+    branch: 'Gurugram',
+    permissions: [
+      { module: 'Patches', actions: ['view'] },
+      { module: 'Assets', actions: ['view'] },
+      { module: 'Discovery', actions: ['view'] },
+    ],
+    isSystem: true,
+  },
+  {
+    id: '5',
+    name: 'System Manager',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+    users: 1,
+    branch: 'Gurugram',
+    permissions: [
+      { module: 'Patches', actions: ['view', 'edit'] },
+      { module: 'Assets', actions: ['view', 'edit'] },
+      { module: 'Settings', actions: ['view'] },
+    ],
+    isSystem: false,
+  },
+  {
+    id: '6',
+    name: 'IT Lead',
+    description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugi...',
+    users: 2,
+    branch: 'Gurugram',
+    permissions: [
+      { module: 'Patches', actions: ['view', 'create', 'edit'] },
+      { module: 'Assets', actions: ['view', 'create', 'edit'] },
+      { module: 'Discovery', actions: ['view', 'create'] },
+    ],
+    isSystem: false,
+  },
+];
+
+// Mock data for policies
+let mockPolicies: Policy[] = [
+  {
+    id: '1',
+    name: '<Policy name>',
+    type: 'Password',
+    orgUnit: 'Gurugram (Default)',
+    users: 10,
+    description: 'Default password policy for all users',
+    configuration: {
+      resetDuration: 'Days',
+      changeEveryDays: 90,
+      lastNPasswordHistory: 5,
+      minCharacterCount: 8,
+      maxCharacterCount: 128,
+      minUpperCaseCharacters: 1,
+      minNumbers: 1,
+      minSpecialCharacters: 1,
+    },
+    affectedRoles: ['Admin', 'Employee'],
+    status: 'Active',
+    createdBy: 'Alice Johnson',
+    createdAt: '2024-01-15T10:00:00Z',
+    updatedAt: '2024-01-15T10:00:00Z',
+  },
+];
+
+export const settingsHandlers = [
+  // Branch APIs
+  http.get('/api/settings/branches', () => {
+    return HttpResponse.json(mockBranches);
+  }),
+
+  http.get('/api/settings/branches/:id', ({ params }) => {
+    const { id } = params;
+    const branch = mockBranches.find((b) => b.id === id);
+    if (!branch) {
+      return HttpResponse.json({ error: 'Branch not found' }, { status: 404 });
+    }
+    return HttpResponse.json(branch);
+  }),
+
+  http.post('/api/settings/branches', async ({ request }) => {
+    const data = (await request.json()) as any;
+
+    // If marking as default, unset other defaults
+    if (data.isDefault) {
+      mockBranches = mockBranches.map(b => ({ ...b, isDefault: false, status: 'Active' as const }));
+    }
+
+    const newBranch: Branch = {
+      id: String(Date.now()),
+      ...data,
+      users: 0,
+      assets: 0,
+      status: data.isDefault ? 'Default' : 'Active',
+    };
+    mockBranches.push(newBranch);
+    return HttpResponse.json(newBranch, { status: 201 });
+  }),
+
+  http.put('/api/settings/branches/:id', async ({ params, request }) => {
+    const { id } = params;
+    const data = (await request.json()) as any;
+
+    const index = mockBranches.findIndex((b) => b.id === id);
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Branch not found' }, { status: 404 });
+    }
+
+    // If marking as default, unset other defaults
+    if (data.isDefault) {
+      mockBranches = mockBranches.map(b => ({ ...b, isDefault: false, status: 'Active' as const }));
+    }
+
+    mockBranches[index] = {
+      ...mockBranches[index],
+      ...data,
+      status: data.isDefault ? 'Default' : mockBranches[index].status,
+    };
+    return HttpResponse.json(mockBranches[index]);
+  }),
+
+  http.delete('/api/settings/branches/:id', ({ params }) => {
+    const { id } = params;
+    const branch = mockBranches.find((b) => b.id === id);
+    if (branch?.isDefault) {
+      return HttpResponse.json({ error: 'Cannot delete default branch' }, { status: 400 });
+    }
+    mockBranches = mockBranches.filter((b) => b.id !== id);
+    return HttpResponse.json({ success: true });
+  }),
+
+  // User APIs
+  http.get('/api/settings/users', () => {
+    return HttpResponse.json(mockUsers);
+  }),
+
+  http.get('/api/settings/users/:id', ({ params }) => {
+    const { id } = params;
+    const user = mockUsers.find((u) => u.id === id);
+    if (!user) {
+      return HttpResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    return HttpResponse.json(user);
+  }),
+
+  http.post('/api/settings/users', async ({ request }) => {
+    const data = (await request.json()) as any;
+    const newUser: User = {
+      id: String(Date.now()),
+      ...data,
+      status: 'Active',
+      lastLogin: 'Never',
+      createdAt: new Date().toISOString(),
+    };
+    mockUsers.push(newUser);
+    return HttpResponse.json(newUser, { status: 201 });
+  }),
+
+  http.put('/api/settings/users/:id', async ({ params, request }) => {
+    const { id } = params;
+    const data = (await request.json()) as any;
+    const index = mockUsers.findIndex((u) => u.id === id);
+    if (index === -1) {
+      return HttpResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+    mockUsers[index] = { ...mockUsers[index], ...data };
+    return HttpResponse.json(mockUsers[index]);
+  }),
+
+  http.delete('/api/settings/users/:id', ({ params }) => {
+    const { id } = params;
+    mockUsers = mockUsers.filter((u) => u.id !== id);
+    return HttpResponse.json({ success: true });
+  }),
+
+  http.post('/api/settings/users/invite', async ({ request }) => {
+    const data = (await request.json()) as any;
+    return HttpResponse.json({ success: true, message: 'Invitation sent' });
+  }),
+
+  http.post('/api/settings/users/:id/reset-password', ({ params }) => {
+    return HttpResponse.json({ success: true, message: 'Password reset email sent' });
+  }),
+
+  http.post('/api/settings/users/:id/suspend', ({ params }) => {
+    const { id } = params;
+    const index = mockUsers.findIndex((u) => u.id === id);
+    if (index !== -1) {
+      mockUsers[index].status = 'In Active';
+    }
+    return HttpResponse.json({ success: true });
+  }),
+
+  http.get('/api/settings/users/:id/audit-log', ({ params }) => {
+    return HttpResponse.json([
+      { action: 'Created', timestamp: '2024-01-15T10:00:00Z', by: 'System' },
+      { action: 'Login', timestamp: '2024-03-05T09:45:00Z', by: 'User' },
+    ]);
+  }),
+
+  // Role APIs
+  http.get('/api/settings/roles', () => {
+    return HttpResponse.json(mockRoles);
+  }),
+
+  http.get('/api/settings/roles/:id', ({ params }) => {
+    const { id } = params;
+    const role = mockRoles.find((r) => r.id === id);
+    if (!role) {
+      return HttpResponse.json({ error: 'Role not found' }, { status: 404 });
+    }
+    return HttpResponse.json(role);
+  }),
+
+  http.post('/api/settings/roles', async ({ request }) => {
+    const data = (await request.json()) as any;
+    const newRole: Role = {
+      id: String(Date.now()),
+      ...data,
+      users: 0,
+      isSystem: false,
+    };
+    mockRoles.push(newRole);
+    return HttpResponse.json(newRole, { status: 201 });
+  }),
+
+  http.put('/api/settings/roles/:id', async ({ params, request }) => {
+    const { id } = params;
+    const data = (await request.json()) as any;
+    const index = mockRoles.findIndex((r) => r.id === id);
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Role not found' }, { status: 404 });
+    }
+    if (mockRoles[index].isSystem) {
+      return HttpResponse.json({ error: 'Cannot modify system role' }, { status: 400 });
+    }
+    mockRoles[index] = { ...mockRoles[index], ...data };
+    return HttpResponse.json(mockRoles[index]);
+  }),
+
+  http.delete('/api/settings/roles/:id', ({ params }) => {
+    const { id } = params;
+    const role = mockRoles.find((r) => r.id === id);
+    if (role?.isSystem) {
+      return HttpResponse.json({ error: 'Cannot delete system role' }, { status: 400 });
+    }
+    mockRoles = mockRoles.filter((r) => r.id !== id);
+    return HttpResponse.json({ success: true });
+  }),
+
+  // Policy APIs
+  http.get('/api/settings/policies', () => {
+    return HttpResponse.json(mockPolicies);
+  }),
+
+  http.get('/api/settings/policies/:id', ({ params }) => {
+    const { id } = params;
+    const policy = mockPolicies.find((p) => p.id === id);
+    if (!policy) {
+      return HttpResponse.json({ error: 'Policy not found' }, { status: 404 });
+    }
+    return HttpResponse.json(policy);
+  }),
+
+  http.post('/api/settings/policies', async ({ request }) => {
+    const data = (await request.json()) as any;
+    const newPolicy: Policy = {
+      id: String(Date.now()),
+      ...data,
+      users: 0,
+      status: 'Active',
+      createdBy: 'Current User',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    mockPolicies.push(newPolicy);
+    return HttpResponse.json(newPolicy, { status: 201 });
+  }),
+
+  http.put('/api/settings/policies/:id', async ({ params, request }) => {
+    const { id } = params;
+    const data = (await request.json()) as any;
+    const index = mockPolicies.findIndex((p) => p.id === id);
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Policy not found' }, { status: 404 });
+    }
+    mockPolicies[index] = {
+      ...mockPolicies[index],
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+    return HttpResponse.json(mockPolicies[index]);
+  }),
+
+  http.delete('/api/settings/policies/:id', ({ params }) => {
+    const { id } = params;
+    mockPolicies = mockPolicies.filter((p) => p.id !== id);
+    return HttpResponse.json({ success: true });
+  }),
+
+  http.post('/api/settings/policies/:id/clone', ({ params }) => {
+    const { id } = params;
+    const policy = mockPolicies.find((p) => p.id === id);
+    if (!policy) {
+      return HttpResponse.json({ error: 'Policy not found' }, { status: 404 });
+    }
+    const clonedPolicy: Policy = {
+      ...policy,
+      id: String(Date.now()),
+      name: `${policy.name} (Copy)`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    mockPolicies.push(clonedPolicy);
+    return HttpResponse.json(clonedPolicy, { status: 201 });
+  }),
+
+  http.post('/api/settings/policies/:id/disable', ({ params }) => {
+    const { id } = params;
+    const index = mockPolicies.findIndex((p) => p.id === id);
+    if (index !== -1) {
+      mockPolicies[index].status = 'Inactive';
+    }
+    return HttpResponse.json({ success: true });
+  }),
+
+  http.get('/api/settings/policies/:id/affected-users', ({ params }) => {
+    return HttpResponse.json(mockUsers.slice(0, 5));
+  }),
+
+  http.get('/api/settings/policies/:id/audit', ({ params }) => {
+    return HttpResponse.json([
+      { action: 'Created', timestamp: '2024-01-15T10:00:00Z', by: 'Alice Johnson' },
+      { action: 'Modified', timestamp: '2024-02-01T10:00:00Z', by: 'Alice Johnson' },
+    ]);
+  }),
+];
